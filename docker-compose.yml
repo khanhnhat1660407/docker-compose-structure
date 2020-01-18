@@ -1,0 +1,55 @@
+version: '2'
+services:
+  db:
+    image: mysql:5.7
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: promotion
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - 32775:3306
+  php:
+    image: sosctannt/fpmmage2:7.1
+    links:
+      - db
+      - redis
+    environment:
+      - M2SETUP_INSTALL_DB=false
+      - MAGENTO_CRON_TIME=*/60 * * * *
+      - DB_HOST=db
+      - DB_NAME=promotion
+      - DB_USER=root
+      - DB_PWD=root
+      - admin_email=nhatcvk@smartosc.com
+      - ADMIN_USER=admin
+      - ADMIN_PASSWORD=admin123
+      - XDEBUG_REMOTEHOST=192.168.2.20
+  nginx:
+    image: sosctannt/nginx
+    links:
+      - php
+    ports:
+      - "80:80"
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8080:80"
+    links:
+      - db
+  redis:
+    image: redis:latest
+    restart: always
+    volumes:
+      - ./redis-data:/data
+volumes:
+  mysql-data:
+
+  redis-data:
+    external: false
+  web-sync-1:
+    external: true
